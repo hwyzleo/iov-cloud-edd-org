@@ -23,12 +23,4 @@ public interface OrgDao extends BaseDao<OrgPo, Long> {
      */
     OrgPo selectPoByCode(String code);
 
-    /**
-     * 批量物理删除组织结构
-     *
-     * @param ids 组织结构id数组
-     * @return 影响行数
-     */
-    int batchPhysicalDeletePo(Long[] ids);
-
 }

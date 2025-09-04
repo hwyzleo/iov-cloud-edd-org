@@ -23,12 +23,4 @@ public interface DealershipDao extends BaseDao<DealershipPo, Long> {
      */
     DealershipPo selectPoByCode(String code);
 
-    /**
-     * 批量物理删除门店信息
-     *
-     * @param ids 门店id数组
-     * @return 影响行数
-     */
-    int batchPhysicalDeletePo(Long[] ids);
-
 }

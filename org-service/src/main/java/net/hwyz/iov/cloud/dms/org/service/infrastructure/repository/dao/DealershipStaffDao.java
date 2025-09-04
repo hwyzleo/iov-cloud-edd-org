@@ -34,12 +34,4 @@ public interface DealershipStaffDao extends BaseDao<DealershipStaffPo, Long> {
      */
     List<SysUser> selectSysUserByKey(String key);
 
-    /**
-     * 批量物理删除门店员工
-     *
-     * @param ids 门店员工id数组
-     * @return 影响行数
-     */
-    int batchPhysicalDeletePo(Long[] ids);
-
 }
