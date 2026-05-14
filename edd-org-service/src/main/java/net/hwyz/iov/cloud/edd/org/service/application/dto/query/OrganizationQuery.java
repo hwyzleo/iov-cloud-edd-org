@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Data
 @Builder
@@ -17,6 +17,6 @@ public class OrganizationQuery {
     private String name;
     private String orgType;
     private String parentCode;
-    private Date beginTime;
-    private Date endTime;
+    private Instant beginTime;
+    private Instant endTime;
 }

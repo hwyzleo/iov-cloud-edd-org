@@ -17,5 +17,7 @@ public class OrganizationTreeDto {
     private String code;
     private String name;
     private String orgType;
+    private Boolean enable;
+    private Integer sort;
     private List<OrganizationTreeDto> children;
 }

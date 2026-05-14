@@ -76,11 +76,11 @@ public class OrganizationRepositoryImpl implements OrganizationRepository {
 
     private Map<String, Object> buildQueryParams(OrganizationQuery query) {
         Map<String, Object> params = new HashMap<>();
-        params.put("code", query.getCode());
-        params.put("name", ParamHelper.fuzzyQueryParam(query.getName()));
-        params.put("orgType", query.getOrgType());
-        params.put("parentId", query.getParentId());
-        params.put("enable", query.getEnable());
+        if (query.getCode() != null) params.put("code", query.getCode());
+        if (query.getName() != null) params.put("name", ParamHelper.fuzzyQueryParam(query.getName()));
+        if (query.getOrgType() != null) params.put("orgType", query.getOrgType());
+        if (query.getParentId() != null) params.put("parentId", query.getParentId());
+        if (query.getEnable() != null) params.put("enable", query.getEnable());
         return params;
     }
 }

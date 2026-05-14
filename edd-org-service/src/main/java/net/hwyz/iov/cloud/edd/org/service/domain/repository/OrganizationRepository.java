@@ -1,7 +1,7 @@
 package net.hwyz.iov.cloud.edd.org.service.domain.repository;
 
-import net.hwyz.iov.cloud.edd.org.service.application.dto.query.OrganizationQuery;
 import net.hwyz.iov.cloud.edd.org.service.domain.model.aggregate.Organization;
+import net.hwyz.iov.cloud.edd.org.service.domain.query.OrganizationQuery;
 
 import java.util.List;
 import java.util.Optional;
