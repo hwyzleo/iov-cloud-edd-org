@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.DealershipStaffMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="baseResultMap"
+               type="net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DealershipStaffPo">
+        <id column="id" property="id"/>
+        <result column="description" property="description"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="modify_time" property="modifyTime"/>
+        <result column="modify_by" property="modifyBy"/>
+        <result column="row_version" property="rowVersion"/>
+        <result column="row_valid" property="rowValid"/>
+        <result column="dealership_code" property="dealershipCode"/>
+        <result column="dealership_name" property="dealershipName"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="phonenumber" property="phonenumber"/>
+    </resultMap>
+
+    <resultMap type="net.hwyz.iov.cloud.edd.mpt.api.domain.SysUser" id="SysUserResult">
+        <id property="userId" column="user_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="email" column="email"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="sex" column="sex"/>
+        <result property="avatar" column="avatar"/>
+        <result property="password" column="password"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="loginIp" column="login_ip"/>
+        <result property="loginDate" column="login_date"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="baseColumnList">
+        t.id, t.dealership_code, d.name as dealership_name, t.user_id, u.login_name as user_name, u.user_name as nick_name, u.phonenumber,
+        t.description, t.create_time, t.create_by, t.modify_time, t.modify_by, t.row_version, t.row_valid
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insertPo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tb_dealership_staff (id, dealership_code, user_id,
+                                         description, create_time, create_by, modify_time, modify_by, row_version,
+                                         row_valid)
+        VALUES (#{id}, #{dealershipCode}, #{userId},
+                #{description}, now(), #{createBy}, now(), #{modifyBy}, 1, 1)
+    </insert>
+
+    <!-- 批量插入 -->
+    <insert id="batchInsertPo" useGeneratedKeys="true" keyProperty="id" parameterType="java.util.List">
+        INSERT INTO tb_dealership_staff (
+        id, dealership_code, user_id,
+        description, create_time, create_by, modify_time, modify_by, row_version, row_valid
+        )
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.id}, #{item.dealershipCode}, #{item.userId},
+            #{item.description}, now(), #{item.createBy}, now(), #{item.modifyBy}, 1, 1
+            )
+        </foreach>
+    </insert>
+
+    <!-- 更新 -->
+    <update id="updatePo"
+            parameterType="net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DealershipStaffPo">
+        UPDATE tb_dealership_staff t SET
+        <if test="dealershipCode != null and dealershipCode != ''">
+            t.dealership_code = #{dealershipCode},
+        </if>
+        <if test="userId != null">
+            t.user_id = #{userId},
+        </if>
+        <if test="description != null and description != ''">
+            t.description = #{description},
+        </if>
+        <if test="modifyBy != null">
+            t.modify_by = #{modifyBy},
+        </if>
+        t.row_version = t.row_version + 1,
+        t.modify_time = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 逻辑删除 -->
+    <update id="logicalDeletePo" parameterType="Long">
+        UPDATE tb_dealership_staff t
+        SET t.row_version = t.row_version + 1,
+            t.modify_time = now(),
+            t.row_valid   = 0
+        WHERE t.id = #{value}
+    </update>
+
+    <!-- 物理删除 -->
+    <delete id="physicalDeletePo" parameterType="Long">
+        DELETE
+        FROM tb_dealership_staff t
+        WHERE t.id = #{value}
+    </delete>
+
+    <!-- 批量物理删除 -->
+    <delete id="batchPhysicalDeletePo" parameterType="Long">
+        DELETE FROM tb_dealership_staff t
+        WHERE t.id IN
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- 根据主键获取对应数据 -->
+    <select id="selectPoById" parameterType="Long" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumnList"/>
+        FROM tb_dealership_staff t
+        LEFT JOIN ry.sys_user u ON t.user_id = u.user_id
+        LEFT JOIN tb_dealership d ON t.dealership_code = d.code
+        WHERE t.id = #{value}
+        AND t.row_valid = 1
+    </select>
+
+    <!-- 根据数据对象获取对应数据列表 -->
+    <select id="selectPoByExample"
+            parameterType="net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DealershipStaffPo"
+            resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumnList"/>
+        FROM tb_dealership_staff t
+        WHERE t.row_valid = 1
+        <if test="id != null">
+            AND t.id = #{id}
+        </if>
+        <if test="dealershipCode != null and dealershipCode != ''">
+            AND t.dealership_code = #{dealershipCode}
+        </if>
+        <if test="userId != null">
+            AND t.user_id = #{userId}
+        </if>
+        <if test="description != null and description != ''">
+            AND t.description = #{description}
+        </if>
+        <if test="createTime != null">
+            AND t.create_time = #{createTime}
+        </if>
+        <if test="createBy != null">
+            AND t.create_by = #{createBy}
+        </if>
+        <if test="modifyTime != null">
+            AND t.modify_time = #{modifyTime}
+        </if>
+        <if test="modifyBy != null">
+            AND t.modify_by = #{modifyBy}
+        </if>
+        <if test="rowVersion != null">
+            AND t.row_version = #{rowVersion}
+        </if>
+        ORDER BY t.id DESC
+    </select>
+
+    <!-- 根据Map对象获取对应数据列表 -->
+    <select id="selectPoByMap" parameterType="java.util.Map" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumnList"/>
+        FROM tb_dealership_staff t
+        LEFT JOIN ry.sys_user u ON t.user_id = u.user_id
+        LEFT JOIN tb_dealership d ON t.dealership_code = d.code
+        WHERE t.row_valid = 1
+        <!-- 添加自定义条件 -->
+        <if test="dealershipCode != null and dealershipCode != ''">
+            AND t.dealership_code = #{dealershipCode}
+        </if>
+        <if test="dealershipList != null">
+            AND t.dealership_code IN
+            <foreach collection="dealershipList" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="dealershipName != null and dealershipName != ''">
+            AND d.name LIKE #{dealershipName}
+        </if>
+        <if test="userName != null and userName != ''">
+            AND u.login_name LIKE #{userName}
+        </if>
+        <if test="phonenumber != null and phonenumber != ''">
+            AND u.phonenumber LIKE #{phonenumber}
+        </if>
+        ORDER BY t.id DESC
+    </select>
+
+    <!-- 通过用户ID查询门店员工 -->
+    <select id="selectPoByUserId" parameterType="java.util.Map" resultMap="baseResultMap">
+        SELECT
+        <include refid="baseColumnList"/>
+        FROM tb_dealership_staff t
+        LEFT JOIN ry.sys_user u ON t.user_id = u.user_id
+        LEFT JOIN tb_dealership d ON t.dealership_code = d.code
+        WHERE t.row_valid = 1
+        AND t.user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <!-- 通过关键词查询员工 -->
+    <select id="selectSysUserByKey" parameterType="java.util.Map" resultMap="SysUserResult">
+        SELECT t.user_id, t.login_name as user_name, t.user_name as nick_name, t.email, t.phonenumber, t.status
+        FROM ry.sys_user t
+        WHERE t.del_flag = 0
+        <if test="key != null and key != ''">
+            AND (t.login_name LIKE #{key} OR t.user_name LIKE #{key} OR t.phonenumber LIKE #{key})
+        </if>
+        LIMIT 10
+    </select>
+
+    <!-- 根据Map对象统计记录数 -->
+    <select id="countPoByMap" parameterType="java.util.Map" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_dealership_staff t
+        WHERE t.row_valid = 1
+        <!-- 添加自定义条件 -->
+    </select>
+</mapper>
