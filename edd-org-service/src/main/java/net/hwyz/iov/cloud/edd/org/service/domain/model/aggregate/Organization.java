@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import net.hwyz.iov.cloud.edd.org.service.domain.exception.BusinessException;
+import net.hwyz.iov.cloud.edd.org.service.domain.model.valueobject.OrganizationCode;
 
 import java.time.Instant;
 
@@ -15,7 +16,7 @@ import java.time.Instant;
 public class Organization {
 
     private Long id;
-    private String code;
+    private OrganizationCode code;
     private String name;
     private String orgType;
     private Long parentId;
@@ -29,6 +30,7 @@ public class Organization {
         if (!Boolean.TRUE.equals(this.enable)) {
             throw new BusinessException("只有启用状态的组织才能激活");
         }
+        this.enable = true;
     }
 
     public void deactivate() {
@@ -38,14 +40,16 @@ public class Organization {
     }
 
     public void changeParent(Long newParentId, String newAncestors) {
+        if (this.id != null && this.id.equals(newParentId)) {
+            throw new BusinessException("不能将组织设置为自己的子组织");
+        }
         this.parentId = newParentId;
         this.ancestors = newAncestors;
     }
 
-    public void updateInfo(String name, String orgType, Boolean enable, Integer sort) {
+    public void updateInfo(String name, String orgType, Integer sort) {
         if (name != null) this.name = name;
         if (orgType != null) this.orgType = orgType;
-        if (enable != null) this.enable = enable;
         if (sort != null) this.sort = sort;
     }
 

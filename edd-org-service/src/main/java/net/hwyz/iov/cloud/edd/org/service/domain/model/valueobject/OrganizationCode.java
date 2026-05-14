@@ -18,7 +18,7 @@ public class OrganizationCode {
         this.value = value;
     }
 
-    public boolean isValid() {
+    public static boolean isValid(String value) {
         return value != null && !value.trim().isEmpty() && value.length() <= 50;
     }
 }
