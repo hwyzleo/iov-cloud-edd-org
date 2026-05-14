@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.hwyz.iov.cloud.edd.org.api.vo.DealershipStaffMpt;
 import net.hwyz.iov.cloud.edd.org.api.vo.OrgMpt;
 import net.hwyz.iov.cloud.edd.org.service.adapter.web.assembler.DealershipStaffMptAssembler;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.query.OrganizationQuery;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.result.OrganizationTreeDto;
 import net.hwyz.iov.cloud.edd.org.service.application.service.DealershipAppService;
 import net.hwyz.iov.cloud.edd.org.service.application.service.DealershipStaffAppService;
 import net.hwyz.iov.cloud.edd.org.service.application.service.OrgAppService;
@@ -22,6 +24,7 @@ import net.hwyz.iov.cloud.framework.web.util.PageUtil;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -145,7 +148,26 @@ public class MptDealershipStaffController extends BaseController {
     @GetMapping(value = "/orgTree")
     public ApiResponse<List<TreeSelect>> orgTree(OrgMpt org) {
         log.info("管理后台用户[{}]获取组织树结构", SecurityUtils.getUsername());
-        return ApiResponse.ok(orgAppService.selectOrgTreeList(org.getCode(), org.getName(), org.getOrgType(), org.getRegionCode()));
+        OrganizationQuery query = OrganizationQuery.builder()
+                .code(org.getCode())
+                .name(org.getName())
+                .orgType(org.getOrgType())
+                .build();
+        List<OrganizationTreeDto> treeDtos = orgAppService.getOrganizationTree(query);
+        return ApiResponse.ok(convertToTreeSelect(treeDtos));
+    }
+
+    private List<TreeSelect> convertToTreeSelect(List<OrganizationTreeDto> treeDtos) {
+        List<TreeSelect> treeSelects = new ArrayList<>();
+        for (OrganizationTreeDto dto : treeDtos) {
+            TreeSelect treeSelect = new TreeSelect();
+            treeSelect.setId(dto.getCode());
+            treeSelect.setLabel(dto.getName());
+            treeSelect.setType(dto.getOrgType());
+            treeSelect.setChildren(dto.getChildren() != null ? convertToTreeSelect(dto.getChildren()) : new ArrayList<>());
+            treeSelects.add(treeSelect);
+        }
+        return treeSelects;
     }
 
     /**

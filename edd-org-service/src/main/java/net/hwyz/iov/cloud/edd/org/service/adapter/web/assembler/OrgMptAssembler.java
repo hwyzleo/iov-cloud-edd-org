@@ -1,6 +1,9 @@
 package net.hwyz.iov.cloud.edd.org.service.adapter.web.assembler;
 
 import net.hwyz.iov.cloud.edd.org.api.vo.OrgMpt;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.cmd.CreateOrganizationCmd;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.cmd.UpdateOrganizationCmd;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.result.OrganizationDto;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.OrgPo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -46,5 +49,40 @@ public interface OrgMptAssembler {
      * @return 数据传输对象列表
      */
     List<OrgMpt> fromPoList(List<OrgPo> orgPoList);
+
+    /**
+     * DTO转MPT对象
+     *
+     * @param dto DTO
+     * @return MPT对象
+     */
+    @Mappings({
+            @Mapping(target = "children", expression = "java(new java.util.ArrayList<>())")
+    })
+    OrgMpt fromDto(OrganizationDto dto);
+
+    /**
+     * DTO列表转MPT对象列表
+     *
+     * @param dtoList DTO列表
+     * @return MPT对象列表
+     */
+    List<OrgMpt> fromDtoList(List<OrganizationDto> dtoList);
+
+    /**
+     * MPT对象转创建命令
+     *
+     * @param orgMpt MPT对象
+     * @return 创建命令
+     */
+    CreateOrganizationCmd toCreateCmd(OrgMpt orgMpt);
+
+    /**
+     * MPT对象转更新命令
+     *
+     * @param orgMpt MPT对象
+     * @return 更新命令
+     */
+    UpdateOrganizationCmd toUpdateCmd(OrgMpt orgMpt);
 
 }

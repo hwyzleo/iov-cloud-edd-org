@@ -5,8 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.hwyz.iov.cloud.edd.org.api.vo.OrgMpt;
 import net.hwyz.iov.cloud.edd.org.service.adapter.web.assembler.OrgMptAssembler;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.query.OrganizationQuery;
+import net.hwyz.iov.cloud.edd.org.service.application.dto.result.OrganizationDto;
 import net.hwyz.iov.cloud.edd.org.service.application.service.OrgAppService;
-import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.OrgPo;
 import net.hwyz.iov.cloud.framework.audit.annotation.Log;
 import net.hwyz.iov.cloud.framework.audit.enums.BusinessType;
 import net.hwyz.iov.cloud.framework.common.bean.ApiResponse;
@@ -45,9 +46,15 @@ public class MptOrgController extends BaseController {
     @GetMapping(value = "/list")
     public ApiResponse<PageResult<OrgMpt>> list(OrgMpt org) {
         log.info("管理后台用户[{}]查询组织架构", SecurityUtils.getUsername());
-        List<OrgPo> platformPoList = orgAppService.search(org.getCode(), org.getName(), org.getOrgType(), null,
-                getBeginTime(org), getEndTime(org));
-        return ApiResponse.ok(getPageResult(PageUtil.convert(platformPoList, OrgMptAssembler.INSTANCE::fromPo)));
+        OrganizationQuery query = OrganizationQuery.builder()
+                .code(org.getCode())
+                .name(org.getName())
+                .orgType(org.getOrgType())
+                .beginTime(getBeginTime(org) != null ? getBeginTime(org).toInstant() : null)
+                .endTime(getEndTime(org) != null ? getEndTime(org).toInstant() : null)
+                .build();
+        List<OrganizationDto> dtoList = orgAppService.searchOrganizations(query);
+        return ApiResponse.ok(getPageResult(PageUtil.convert(dtoList, OrgMptAssembler.INSTANCE::fromDto)));
     }
 
     /**
@@ -60,11 +67,11 @@ public class MptOrgController extends BaseController {
     @GetMapping(value = "/list/exclude/{orgId}")
     public ApiResponse<List<OrgMpt>> listExcludeChild(@PathVariable Long orgId) {
         log.info("管理后台用户[{}]查询组织架构（排除节点[{}]）", SecurityUtils.getUsername(), orgId);
-        List<OrgPo> platformPoList = orgAppService.search(null, null, null, null,
-                null, null);
-        List<OrgMpt> dealershipMptList = OrgMptAssembler.INSTANCE.fromPoList(platformPoList);
-        dealershipMptList.removeIf(d -> d.getId().longValue() == orgId || ArrayUtils.contains(StrUtil.splitToArray(d.getAncestors(), ","), orgId + ""));
-        return ApiResponse.ok(dealershipMptList);
+        OrganizationQuery query = OrganizationQuery.builder().build();
+        List<OrganizationDto> dtoList = orgAppService.searchOrganizations(query);
+        List<OrgMpt> orgMptList = OrgMptAssembler.INSTANCE.fromDtoList(dtoList);
+        orgMptList.removeIf(d -> d.getId().longValue() == orgId || ArrayUtils.contains(StrUtil.splitToArray(d.getAncestors(), ","), orgId + ""));
+        return ApiResponse.ok(orgMptList);
     }
 
     /**
@@ -90,8 +97,8 @@ public class MptOrgController extends BaseController {
     @GetMapping(value = "/{orgId}")
     public ApiResponse<OrgMpt> getInfo(@PathVariable Long orgId) {
         log.info("管理后台用户[{}]根据组织架构ID[{}]获取组织架构", SecurityUtils.getUsername(), orgId);
-        OrgPo orgPo = orgAppService.getOrgById(orgId);
-        return ApiResponse.ok(OrgMptAssembler.INSTANCE.fromPo(orgPo));
+        OrganizationDto dto = orgAppService.getOrganizationById(orgId);
+        return ApiResponse.ok(OrgMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**
@@ -103,14 +110,14 @@ public class MptOrgController extends BaseController {
     @Log(title = "组织架构管理", businessType = BusinessType.INSERT)
     @RequiresPermissions("org:dealership:org:add")
     @PostMapping
-    public ApiResponse<Integer> add(@Validated @RequestBody OrgMpt org) {
+    public ApiResponse<OrgMpt> add(@Validated @RequestBody OrgMpt org) {
         log.info("管理后台用户[{}]新增组织架构[{}]", SecurityUtils.getUsername(), org.getCode());
         if (!orgAppService.checkCodeUnique(org.getId(), org.getCode())) {
             return ApiResponse.fail("新增组织架构'" + org.getCode() + "'失败，组织架构代码已存在");
         }
-        OrgPo orgPo = OrgMptAssembler.INSTANCE.toPo(org);
-        orgPo.setCreateBy(SecurityUtils.getUserId().toString());
-        return ApiResponse.ok(orgAppService.createOrg(orgPo));
+        var cmd = OrgMptAssembler.INSTANCE.toCreateCmd(org);
+        OrganizationDto dto = orgAppService.createOrganization(cmd);
+        return ApiResponse.ok(OrgMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**
@@ -122,14 +129,14 @@ public class MptOrgController extends BaseController {
     @Log(title = "组织架构管理", businessType = BusinessType.UPDATE)
     @RequiresPermissions("org:dealership:org:edit")
     @PutMapping
-    public ApiResponse<Integer> edit(@Validated @RequestBody OrgMpt org) {
+    public ApiResponse<OrgMpt> edit(@Validated @RequestBody OrgMpt org) {
         log.info("管理后台用户[{}]修改保存组织架构[{}]", SecurityUtils.getUsername(), org.getCode());
         if (!orgAppService.checkCodeUnique(org.getId(), org.getCode())) {
             return ApiResponse.fail("修改保存组织架构'" + org.getCode() + "'失败，组织架构代码已存在");
         }
-        OrgPo orgPo = OrgMptAssembler.INSTANCE.toPo(org);
-        orgPo.setModifyBy(SecurityUtils.getUserId().toString());
-        return ApiResponse.ok(orgAppService.modifyOrg(orgPo));
+        var cmd = OrgMptAssembler.INSTANCE.toUpdateCmd(org);
+        OrganizationDto dto = orgAppService.updateOrganization(cmd);
+        return ApiResponse.ok(OrgMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**
@@ -141,9 +148,10 @@ public class MptOrgController extends BaseController {
     @Log(title = "组织架构管理", businessType = BusinessType.DELETE)
     @RequiresPermissions("org:dealership:org:remove")
     @DeleteMapping("/{orgIds}")
-    public ApiResponse<Integer> remove(@PathVariable Long[] orgIds) {
+    public ApiResponse<Void> remove(@PathVariable Long[] orgIds) {
         log.info("管理后台用户[{}]删除组织架构[{}]", SecurityUtils.getUsername(), orgIds);
-        return ApiResponse.ok(orgAppService.deleteOrgByIds(orgIds));
+        orgAppService.deleteOrganizations(orgIds);
+        return ApiResponse.ok();
     }
 
 }
