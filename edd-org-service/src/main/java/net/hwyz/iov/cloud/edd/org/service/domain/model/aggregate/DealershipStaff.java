@@ -20,6 +20,7 @@ public class DealershipStaff {
     private String userName;
     private String nickName;
     private String phonenumber;
+    private Long employeeId;
     private Instant createTime;
     private Instant modifyTime;
 }

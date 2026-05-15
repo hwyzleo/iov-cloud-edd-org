@@ -36,7 +36,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/mpt/dealership")
+@RequestMapping(value = "/api/mpt/dealership/v1")
 public class MptDealershipController extends BaseController {
 
     private final OrgAppService orgAppService;

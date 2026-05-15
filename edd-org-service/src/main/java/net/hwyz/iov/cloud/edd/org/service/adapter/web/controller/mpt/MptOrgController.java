@@ -31,7 +31,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/mpt/org")
+@RequestMapping(value = "/api/mpt/org/v1")
 public class MptOrgController extends BaseController {
 
     private final OrgAppService orgAppService;

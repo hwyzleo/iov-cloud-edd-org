@@ -33,7 +33,6 @@ import java.util.List;
 public class MptEmployeeController extends BaseController {
 
     private final EmployeeAppService employeeAppService;
-    private final EmployeeMptAssembler employeeMptAssembler;
 
     /**
      * 查询员工列表
@@ -55,7 +54,7 @@ public class MptEmployeeController extends BaseController {
                 .endTime(getEndTime(employee) != null ? getEndTime(employee).toInstant() : null)
                 .build();
         List<EmployeeDto> dtoList = employeeAppService.searchEmployees(query);
-        return ApiResponse.ok(getPageResult(PageUtil.convert(dtoList, employeeMptAssembler::fromDto)));
+        return ApiResponse.ok(getPageResult(PageUtil.convert(dtoList, EmployeeMptAssembler.INSTANCE::fromDto)));
     }
 
     /**
@@ -82,7 +81,7 @@ public class MptEmployeeController extends BaseController {
     public ApiResponse<EmployeeMpt> getInfo(@PathVariable Long employeeId) {
         log.info("管理后台用户[{}]根据员工ID[{}]获取员工", SecurityUtils.getUsername(), employeeId);
         EmployeeDto dto = employeeAppService.getEmployeeById(employeeId);
-        return ApiResponse.ok(employeeMptAssembler.fromDto(dto));
+        return ApiResponse.ok(EmployeeMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**
@@ -99,9 +98,9 @@ public class MptEmployeeController extends BaseController {
         if (!employeeAppService.checkCodeUnique(employee.getId(), employee.getCode())) {
             return ApiResponse.fail("新增员工'" + employee.getCode() + "'失败，员工工号已存在");
         }
-        var cmd = employeeMptAssembler.toCreateCmd(employee);
+        var cmd = EmployeeMptAssembler.INSTANCE.toCreateCmd(employee);
         EmployeeDto dto = employeeAppService.createEmployee(cmd);
-        return ApiResponse.ok(employeeMptAssembler.fromDto(dto));
+        return ApiResponse.ok(EmployeeMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**
@@ -118,9 +117,9 @@ public class MptEmployeeController extends BaseController {
         if (!employeeAppService.checkCodeUnique(employee.getId(), employee.getCode())) {
             return ApiResponse.fail("修改保存员工'" + employee.getCode() + "'失败，员工工号已存在");
         }
-        var cmd = employeeMptAssembler.toUpdateCmd(employee);
+        var cmd = EmployeeMptAssembler.INSTANCE.toUpdateCmd(employee);
         EmployeeDto dto = employeeAppService.updateEmployee(cmd);
-        return ApiResponse.ok(employeeMptAssembler.fromDto(dto));
+        return ApiResponse.ok(EmployeeMptAssembler.INSTANCE.fromDto(dto));
     }
 
     /**

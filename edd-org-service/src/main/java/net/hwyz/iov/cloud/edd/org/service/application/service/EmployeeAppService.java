@@ -10,10 +10,18 @@ import net.hwyz.iov.cloud.edd.org.service.application.dto.result.EmployeeDto;
 import net.hwyz.iov.cloud.edd.org.service.domain.exception.BusinessException;
 import net.hwyz.iov.cloud.edd.org.service.domain.model.aggregate.Employee;
 import net.hwyz.iov.cloud.edd.org.service.domain.repository.EmployeeRepository;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.DepartmentMapper;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.PositionMapper;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DepartmentPo;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.PositionPo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +30,8 @@ public class EmployeeAppService {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeAssembler employeeAssembler;
+    private final DepartmentMapper departmentMapper;
+    private final PositionMapper positionMapper;
 
     @Transactional
     public EmployeeDto createEmployee(CreateEmployeeCmd cmd) {
@@ -41,7 +51,11 @@ public class EmployeeAppService {
             employeeRepository.savePositions(employee.getId(), cmd.getPositionIds());
         }
 
-        return employeeAssembler.toDto(employee);
+        EmployeeDto dto = employeeAssembler.toDto(employee);
+        dto.setDepartmentIds(cmd.getDepartmentIds());
+        dto.setPositionIds(cmd.getPositionIds());
+        setDepartmentAndPositionNames(dto);
+        return dto;
     }
 
     @Transactional
@@ -67,7 +81,11 @@ public class EmployeeAppService {
             employeeRepository.savePositions(employee.getId(), cmd.getPositionIds());
         }
 
-        return employeeAssembler.toDto(employee);
+        EmployeeDto dto = employeeAssembler.toDto(employee);
+        dto.setDepartmentIds(cmd.getDepartmentIds());
+        dto.setPositionIds(cmd.getPositionIds());
+        setDepartmentAndPositionNames(dto);
+        return dto;
     }
 
     public EmployeeDto getEmployeeById(Long id) {
@@ -77,6 +95,7 @@ public class EmployeeAppService {
         EmployeeDto dto = employeeAssembler.toDto(employee);
         dto.setDepartmentIds(employeeRepository.findDepartmentIds(id));
         dto.setPositionIds(employeeRepository.findPositionIds(id));
+        setDepartmentAndPositionNames(dto);
         return dto;
     }
 
@@ -87,6 +106,7 @@ public class EmployeeAppService {
         EmployeeDto dto = employeeAssembler.toDto(employee);
         dto.setDepartmentIds(employeeRepository.findDepartmentIds(employee.getId()));
         dto.setPositionIds(employeeRepository.findPositionIds(employee.getId()));
+        setDepartmentAndPositionNames(dto);
         return dto;
     }
 
@@ -97,6 +117,7 @@ public class EmployeeAppService {
         EmployeeDto dto = employeeAssembler.toDto(employee);
         dto.setDepartmentIds(employeeRepository.findDepartmentIds(employee.getId()));
         dto.setPositionIds(employeeRepository.findPositionIds(employee.getId()));
+        setDepartmentAndPositionNames(dto);
         return dto;
     }
 
@@ -117,6 +138,7 @@ public class EmployeeAppService {
             Long employeeId = employees.get(i).getId();
             dto.setDepartmentIds(employeeRepository.findDepartmentIds(employeeId));
             dto.setPositionIds(employeeRepository.findPositionIds(employeeId));
+            setDepartmentAndPositionNames(dto);
         }
         return dtos;
     }
@@ -133,5 +155,43 @@ public class EmployeeAppService {
 
     public boolean checkCodeUnique(Long id, String code) {
         return !employeeRepository.existsByCode(code, id);
+    }
+
+    private void setDepartmentAndPositionNames(EmployeeDto dto) {
+        if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
+            List<DepartmentPo> departments = departmentMapper.selectBatchIds(dto.getDepartmentIds());
+            Map<Long, DepartmentPo> deptMap = departments.stream()
+                .collect(Collectors.toMap(DepartmentPo::getId, Function.identity()));
+            
+            List<String> names = new ArrayList<>();
+            for (int i = 0; i < dto.getDepartmentIds().size(); i++) {
+                Long deptId = dto.getDepartmentIds().get(i);
+                DepartmentPo dept = deptMap.get(deptId);
+                String name = dept != null ? dept.getName() : "已删除";
+                if (i == 0) {
+                    name += "(主)";
+                }
+                names.add(name);
+            }
+            dto.setDepartmentNames(String.join(",", names));
+        }
+        
+        if (dto.getPositionIds() != null && !dto.getPositionIds().isEmpty()) {
+            List<PositionPo> positions = positionMapper.selectBatchIds(dto.getPositionIds());
+            Map<Long, PositionPo> posMap = positions.stream()
+                .collect(Collectors.toMap(PositionPo::getId, Function.identity()));
+            
+            List<String> names = new ArrayList<>();
+            for (int i = 0; i < dto.getPositionIds().size(); i++) {
+                Long posId = dto.getPositionIds().get(i);
+                PositionPo pos = posMap.get(posId);
+                String name = pos != null ? pos.getName() : "已删除";
+                if (i == 0) {
+                    name += "(主)";
+                }
+                names.add(name);
+            }
+            dto.setPositionNames(String.join(",", names));
+        }
     }
 }
