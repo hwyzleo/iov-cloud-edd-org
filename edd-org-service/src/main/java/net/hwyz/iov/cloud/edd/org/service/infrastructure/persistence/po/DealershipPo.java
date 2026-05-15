@@ -140,6 +140,12 @@ public class DealershipPo extends BasePo {
     private String areaCode;
 
     /**
+     * 组织代码
+     */
+    @TableField("org_code")
+    private String orgCode;
+
+    /**
      * 省级行政区代码
      */
     @TableField("province_code")

@@ -48,6 +48,16 @@ public class DealershipMpt extends BaseRequest {
     private String areaCode;
 
     /**
+     * 组织代码
+     */
+    private String orgCode;
+
+    /**
+     * 服务类型：S-销售，D-交付，A-售后
+     */
+    private String serviceType;
+
+    /**
      * 排序
      */
     private Integer sort;
