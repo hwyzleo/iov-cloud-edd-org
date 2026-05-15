@@ -16,8 +16,8 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Mappings;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 管理后台员工转换类
@@ -101,32 +101,30 @@ public abstract class EmployeeMptAssembler {
     private void setDepartmentNames(EmployeeDto dto, EmployeeMpt mpt) {
         if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
             List<DepartmentPo> departments = departmentMapper.selectBatchIds(dto.getDepartmentIds());
-            String names = departments.stream()
-                .map(DepartmentPo::getName)
-                .collect(Collectors.joining(","));
-            if (!names.isEmpty()) {
-                names = names + "(主)";
-                if (names.contains(",")) {
-                    names = names.replaceFirst(",", "(主),");
+            List<String> names = new ArrayList<>();
+            for (int i = 0; i < departments.size(); i++) {
+                String name = departments.get(i).getName();
+                if (i == 0) {
+                    name += "(主)";
                 }
+                names.add(name);
             }
-            mpt.setDepartmentNames(names);
+            mpt.setDepartmentNames(String.join(",", names));
         }
     }
 
     private void setPositionNames(EmployeeDto dto, EmployeeMpt mpt) {
         if (dto.getPositionIds() != null && !dto.getPositionIds().isEmpty()) {
             List<PositionPo> positions = positionMapper.selectBatchIds(dto.getPositionIds());
-            String names = positions.stream()
-                .map(PositionPo::getName)
-                .collect(Collectors.joining(","));
-            if (!names.isEmpty()) {
-                names = names + "(主)";
-                if (names.contains(",")) {
-                    names = names.replaceFirst(",", "(主),");
+            List<String> names = new ArrayList<>();
+            for (int i = 0; i < positions.size(); i++) {
+                String name = positions.get(i).getName();
+                if (i == 0) {
+                    name += "(主)";
                 }
+                names.add(name);
             }
-            mpt.setPositionNames(names);
+            mpt.setPositionNames(String.join(",", names));
         }
     }
 
