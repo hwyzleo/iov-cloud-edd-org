@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(value = "/mp/dealership")
+@RequestMapping(value = "/api/mobile/dealership/v1")
 public class MobileDealershipController {
 
     private final DealershipAppService dealershipAppService;
