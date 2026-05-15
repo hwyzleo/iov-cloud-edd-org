@@ -18,6 +18,9 @@ import org.mapstruct.Mappings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 管理后台员工转换类
@@ -101,9 +104,14 @@ public abstract class EmployeeMptAssembler {
     private void setDepartmentNames(EmployeeDto dto, EmployeeMpt mpt) {
         if (dto.getDepartmentIds() != null && !dto.getDepartmentIds().isEmpty()) {
             List<DepartmentPo> departments = departmentMapper.selectBatchIds(dto.getDepartmentIds());
+            Map<Long, DepartmentPo> deptMap = departments.stream()
+                .collect(Collectors.toMap(DepartmentPo::getId, Function.identity()));
+            
             List<String> names = new ArrayList<>();
-            for (int i = 0; i < departments.size(); i++) {
-                String name = departments.get(i).getName();
+            for (int i = 0; i < dto.getDepartmentIds().size(); i++) {
+                Long deptId = dto.getDepartmentIds().get(i);
+                DepartmentPo dept = deptMap.get(deptId);
+                String name = dept != null ? dept.getName() : "已删除";
                 if (i == 0) {
                     name += "(主)";
                 }
@@ -116,9 +124,14 @@ public abstract class EmployeeMptAssembler {
     private void setPositionNames(EmployeeDto dto, EmployeeMpt mpt) {
         if (dto.getPositionIds() != null && !dto.getPositionIds().isEmpty()) {
             List<PositionPo> positions = positionMapper.selectBatchIds(dto.getPositionIds());
+            Map<Long, PositionPo> posMap = positions.stream()
+                .collect(Collectors.toMap(PositionPo::getId, Function.identity()));
+            
             List<String> names = new ArrayList<>();
-            for (int i = 0; i < positions.size(); i++) {
-                String name = positions.get(i).getName();
+            for (int i = 0; i < dto.getPositionIds().size(); i++) {
+                Long posId = dto.getPositionIds().get(i);
+                PositionPo pos = posMap.get(posId);
+                String name = pos != null ? pos.getName() : "已删除";
                 if (i == 0) {
                     name += "(主)";
                 }
