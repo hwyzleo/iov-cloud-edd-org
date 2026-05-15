@@ -1,6 +1,5 @@
 package net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.repository;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import net.hwyz.iov.cloud.edd.org.service.domain.model.aggregate.Employee;
 import net.hwyz.iov.cloud.edd.org.service.domain.query.EmployeeQuery;
@@ -12,7 +11,7 @@ import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.Empl
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.EmployeeDepartmentPo;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.EmployeePo;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.EmployeePositionPo;
-import net.hwyz.iov.cloud.edd.framework.common.util.ParamHelper;
+import net.hwyz.iov.cloud.framework.common.util.ParamHelper;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -100,7 +99,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
                 .departmentId(departmentIds.get(i))
                 .isPrimary(i == 0)
                 .build();
-            employeeDepartmentMapper.insert(po);
+            employeeDepartmentMapper.insertPo(po);
         }
     }
 
@@ -113,27 +112,23 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
                 .positionId(positionIds.get(i))
                 .isPrimary(i == 0)
                 .build();
-            employeePositionMapper.insert(po);
+            employeePositionMapper.insertPo(po);
         }
     }
 
     @Override
     public void deleteDepartments(Long employeeId) {
-        employeeDepartmentMapper.delete(new LambdaQueryWrapper<EmployeeDepartmentPo>()
-            .eq(EmployeeDepartmentPo::getEmployeeId, employeeId));
+        employeeDepartmentMapper.deletePoByEmployeeId(employeeId);
     }
 
     @Override
     public void deletePositions(Long employeeId) {
-        employeePositionMapper.delete(new LambdaQueryWrapper<EmployeePositionPo>()
-            .eq(EmployeePositionPo::getEmployeeId, employeeId));
+        employeePositionMapper.deletePoByEmployeeId(employeeId);
     }
 
     @Override
     public List<Long> findDepartmentIds(Long employeeId) {
-        return employeeDepartmentMapper.selectList(new LambdaQueryWrapper<EmployeeDepartmentPo>()
-            .eq(EmployeeDepartmentPo::getEmployeeId, employeeId)
-            .orderByDesc(EmployeeDepartmentPo::getIsPrimary))
+        return employeeDepartmentMapper.selectPoByEmployeeId(employeeId)
             .stream()
             .map(EmployeeDepartmentPo::getDepartmentId)
             .collect(Collectors.toList());
@@ -141,9 +136,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public List<Long> findPositionIds(Long employeeId) {
-        return employeePositionMapper.selectList(new LambdaQueryWrapper<EmployeePositionPo>()
-            .eq(EmployeePositionPo::getEmployeeId, employeeId)
-            .orderByDesc(EmployeePositionPo::getIsPrimary))
+        return employeePositionMapper.selectPoByEmployeeId(employeeId)
             .stream()
             .map(EmployeePositionPo::getPositionId)
             .collect(Collectors.toList());

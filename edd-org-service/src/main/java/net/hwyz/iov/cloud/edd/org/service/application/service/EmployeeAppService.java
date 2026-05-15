@@ -74,21 +74,30 @@ public class EmployeeAppService {
         log.info("查询员工: {}", id);
         Employee employee = employeeRepository.findById(id)
             .orElseThrow(() -> new BusinessException("员工不存在: " + id));
-        return employeeAssembler.toDto(employee);
+        EmployeeDto dto = employeeAssembler.toDto(employee);
+        dto.setDepartmentIds(employeeRepository.findDepartmentIds(id));
+        dto.setPositionIds(employeeRepository.findPositionIds(id));
+        return dto;
     }
 
     public EmployeeDto getEmployeeByCode(String code) {
         log.info("查询员工: {}", code);
         Employee employee = employeeRepository.findByCode(code)
             .orElseThrow(() -> new BusinessException("员工不存在: " + code));
-        return employeeAssembler.toDto(employee);
+        EmployeeDto dto = employeeAssembler.toDto(employee);
+        dto.setDepartmentIds(employeeRepository.findDepartmentIds(employee.getId()));
+        dto.setPositionIds(employeeRepository.findPositionIds(employee.getId()));
+        return dto;
     }
 
     public EmployeeDto getEmployeeByEiamUserId(Long eiamUserId) {
         log.info("查询员工: {}", eiamUserId);
         Employee employee = employeeRepository.findByEiamUserId(eiamUserId)
             .orElseThrow(() -> new BusinessException("员工不存在: " + eiamUserId));
-        return employeeAssembler.toDto(employee);
+        EmployeeDto dto = employeeAssembler.toDto(employee);
+        dto.setDepartmentIds(employeeRepository.findDepartmentIds(employee.getId()));
+        dto.setPositionIds(employeeRepository.findPositionIds(employee.getId()));
+        return dto;
     }
 
     public List<EmployeeDto> searchEmployees(EmployeeQuery query) {
@@ -102,7 +111,14 @@ public class EmployeeAppService {
                 .eiamAccount(query.getEiamAccount())
                 .build();
         List<Employee> employees = employeeRepository.findByConditions(domainQuery);
-        return employeeAssembler.toDtoList(employees);
+        List<EmployeeDto> dtos = employeeAssembler.toDtoList(employees);
+        for (int i = 0; i < dtos.size(); i++) {
+            EmployeeDto dto = dtos.get(i);
+            Long employeeId = employees.get(i).getId();
+            dto.setDepartmentIds(employeeRepository.findDepartmentIds(employeeId));
+            dto.setPositionIds(employeeRepository.findPositionIds(employeeId));
+        }
+        return dtos;
     }
 
     @Transactional
