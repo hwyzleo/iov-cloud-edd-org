@@ -10,4 +10,13 @@
         DELETE FROM tb_employee_position WHERE employee_id = #{employeeId}
     </delete>
 
+    <insert id="insertPo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tb_employee_position (
+            id, employee_id, position_id, is_primary
+        )
+        VALUES (
+            #{id}, #{employeeId}, #{positionId}, #{isPrimary}
+        )
+    </insert>
+
 </mapper>
