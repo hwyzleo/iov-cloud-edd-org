@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>net.hwyz.iov.cloud.dms</groupId>
+    <groupId>net.hwyz.iov.cloud.edd</groupId>
     <artifactId>edd-org-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 

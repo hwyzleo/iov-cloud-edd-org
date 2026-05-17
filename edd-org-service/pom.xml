@@ -21,7 +21,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>net.hwyz.iov.cloud.dms</groupId>
+            <groupId>net.hwyz.iov.cloud.edd</groupId>
             <artifactId>edd-org-api</artifactId>
             <version>${org.version}</version>
         </dependency>
