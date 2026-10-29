@@ -1,5 +1,13 @@
-server:
-  port: 8080
+# FW-WEB-DSN-CR-001 / EDD-ORG-DSN-CR-001: 组织自有 JSON java.time 时间契约
+# date-format 显式固定为 epoch-millis（兼容优先，默认值显式声明，配置仅启动生效）
+# zone-id 为业务时区声明：ORG 无 LocalDateTime/OffsetDateTime 业务字段，
+# 仅用于框架启动探针（epoch-millis 模式未配置 zone-id 会阻断启动）；
+# Instant/LocalDate/java.util.Date 均不依赖该 zone（绝对时刻/日期语义）
+iov:
+  web:
+    jackson:
+      date-format: epoch-millis
+      zone-id: Asia/Shanghai
 
 mybatis-plus:
   type-aliases-package: net.hwyz.iov.cloud.edd.org.service.infrastructure.repository.po
