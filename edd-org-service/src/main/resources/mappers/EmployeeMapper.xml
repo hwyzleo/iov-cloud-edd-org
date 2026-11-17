@@ -266,4 +266,41 @@
         FROM tb_employee t
         WHERE t.row_valid = 1
     </select>
+
+    <!-- 增量同步：含逻辑删除记录（墓碑），按 modify_time, id 升序（EDD-ORG-DSN-CR-004） -->
+    <select id="selectChanges" resultMap="baseResultMap">
+        SELECT <include refid="baseColumnList"/>
+        FROM tb_employee t
+        <where>
+            <if test="since != null">
+                AND t.modify_time &gt; #{since}
+            </if>
+        </where>
+        ORDER BY t.modify_time ASC, t.id ASC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 增量变更计数（EDD-ORG-DSN-CR-004） -->
+    <select id="countChanges" resultType="long">
+        SELECT COUNT(*)
+        FROM tb_employee t
+        <where>
+            <if test="since != null">
+                AND t.modify_time &gt; #{since}
+            </if>
+        </where>
+    </select>
+
+    <!-- 在职员工检索（供 MPT 用户绑定选人，EDD-ORG-DSN-CR-004） -->
+    <select id="selectActiveByKey" resultMap="baseResultMap">
+        SELECT <include refid="baseColumnList"/>
+        FROM tb_employee t
+        WHERE t.row_valid = 1
+        AND t.enable = 1
+        <if test="key != null and key != ''">
+            AND (t.code LIKE #{key} OR t.name LIKE #{key} OR t.phone LIKE #{key})
+        </if>
+        ORDER BY t.id DESC
+        LIMIT #{limit}
+    </select>
 </mapper>

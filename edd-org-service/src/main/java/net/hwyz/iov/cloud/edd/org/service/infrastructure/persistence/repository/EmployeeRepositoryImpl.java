@@ -70,7 +70,8 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public void delete(Long id) {
-        employeeMapper.physicalDeletePo(id);
+        // EDD-ORG-DSN-CR-004 §9.4：员工删除改为逻辑删除，保留删除事实供下游增量同步（墓碑）与审计
+        employeeMapper.logicalDeletePo(id);
     }
 
     @Override

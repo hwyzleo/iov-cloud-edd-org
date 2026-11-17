@@ -11,9 +11,12 @@ import net.hwyz.iov.cloud.edd.org.service.domain.exception.BusinessException;
 import net.hwyz.iov.cloud.edd.org.service.domain.model.aggregate.Employee;
 import net.hwyz.iov.cloud.edd.org.service.domain.repository.EmployeeRepository;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.DepartmentMapper;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.EmployeeMapper;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.PositionMapper;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DepartmentPo;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.EmployeePo;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.PositionPo;
+import net.hwyz.iov.cloud.framework.common.util.ParamHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class EmployeeAppService {
     private final EmployeeAssembler employeeAssembler;
     private final DepartmentMapper departmentMapper;
     private final PositionMapper positionMapper;
+    private final EmployeeMapper employeeMapper;
     private final DealershipStaffAppService dealershipStaffAppService;
 
     @Transactional
@@ -154,6 +158,39 @@ public class EmployeeAppService {
             employeeRepository.deletePositions(id);
             employeeRepository.delete(id);
         }
+    }
+
+    /**
+     * 增量查询员工变更（含逻辑删除墓碑，EDD-ORG-DSN-CR-004）
+     *
+     * @param since  水位（modify_time 下界，不含）
+     * @param offset 偏移量
+     * @param limit  每页条数
+     * @return 员工变更列表
+     */
+    public List<EmployeePo> findEmployeeChanges(java.util.Date since, int offset, int limit) {
+        return employeeMapper.selectChanges(since, offset, limit);
+    }
+
+    /**
+     * 统计员工增量变更数量
+     *
+     * @param since 水位（modify_time 下界，不含）
+     * @return 数量
+     */
+    public long countEmployeeChanges(java.util.Date since) {
+        return employeeMapper.countChanges(since);
+    }
+
+    /**
+     * 检索在职员工（供账号绑定选人）
+     *
+     * @param key   关键词（工号/姓名/手机号）
+     * @param limit 返回上限
+     * @return 在职员工列表
+     */
+    public List<EmployeePo> searchActiveEmployees(String key, int limit) {
+        return employeeMapper.selectActiveByKey(ParamHelper.fuzzyQueryParam(key), limit);
     }
 
     public boolean checkCodeUnique(Long id, String code) {
