@@ -1,13 +1,12 @@
 package net.hwyz.iov.cloud.edd.org.service.application.service;
 
-import cn.hutool.core.util.ObjUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.hwyz.iov.cloud.edd.mpt.api.domain.SysUser;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.DealershipMapper;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.mapper.DealershipStaffMapper;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DealershipPo;
 import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.DealershipStaffPo;
+import net.hwyz.iov.cloud.edd.org.service.infrastructure.persistence.po.EmployeePo;
 import net.hwyz.iov.cloud.framework.common.util.ParamHelper;
 import net.hwyz.iov.cloud.framework.common.util.StrUtil;
 import net.hwyz.iov.cloud.framework.web.domain.TreeSelect;
@@ -39,14 +38,15 @@ public class DealershipStaffAppService {
      * @param areaCode       小区代码
      * @param dealershipCode 门店代码
      * @param dealershipName 门店名称
-     * @param userName       用户账号
-     * @param phonenumber    手机号
+     * @param employeeCode   员工工号
+     * @param employeeName   员工姓名
+     * @param phone          员工手机号
      * @param beginTime      开始时间
      * @param endTime        结束时间
-     * @return 车辆平台列表
+     * @return 门店员工列表
      */
     public List<DealershipStaffPo> search(String regionCode, String areaCode, String dealershipCode, String dealershipName,
-                                          String userName, String phonenumber, Date beginTime, Date endTime) {
+                                          String employeeCode, String employeeName, String phone, Date beginTime, Date endTime) {
         Map<String, Object> map = new HashMap<>();
         if (StrUtil.isNotBlank(regionCode)) {
             List<DealershipPo> regionDealershipList = dealershipMapper.selectPoByExample(DealershipPo.builder().regionCode(regionCode).build());
@@ -66,45 +66,56 @@ public class DealershipStaffAppService {
         }
         map.put("dealershipCode", dealershipCode);
         map.put("dealershipName", ParamHelper.fuzzyQueryParam(dealershipName));
-        map.put("userName", ParamHelper.fuzzyQueryParam(userName));
-        map.put("phonenumber", ParamHelper.fuzzyQueryParam(phonenumber));
+        map.put("employeeCode", ParamHelper.fuzzyQueryParam(employeeCode));
+        map.put("employeeName", ParamHelper.fuzzyQueryParam(employeeName));
+        map.put("phone", ParamHelper.fuzzyQueryParam(phone));
         map.put("beginTime", beginTime);
         map.put("endTime", endTime);
         return dealershipStaffMapper.selectPoByMap(map);
     }
 
     /**
-     * 根据关键字查询用户
+     * 根据关键字查询候选员工（来源为 ORG 员工主数据）
      *
-     * @param key 关键字
-     * @return 用户列表
+     * @param key 关键字（工号/姓名/手机号）
+     * @return 员工下拉树列表
      */
-    public List<TreeSelect> searchUser(String key) {
-        List<SysUser> sysUsers = dealershipStaffMapper.selectSysUserByKey(ParamHelper.fuzzyQueryParam(key));
-        return sysUsers.stream()
-                .map(sysUser -> {
+    public List<TreeSelect> searchEmployee(String key) {
+        List<EmployeePo> employees = dealershipStaffMapper.selectEmployeeByKey(ParamHelper.fuzzyQueryParam(key));
+        return employees.stream()
+                .map(employee -> {
                     TreeSelect treeSelect = new TreeSelect();
-                    treeSelect.setId(sysUser.getUserId().toString());
-                    treeSelect.setLabel(sysUser.getUserName() + ", " + sysUser.getNickName() + ", " + sysUser.getPhonenumber());
-                    treeSelect.setType(sysUser.getNickName());
+                    treeSelect.setId(employee.getId().toString());
+                    treeSelect.setLabel(employee.getCode() + ", " + employee.getName() + ", " + employee.getPhone());
+                    treeSelect.setType(employee.getName());
                     return treeSelect;
                 })
                 .collect(Collectors.toList());
     }
 
     /**
-     * 检查用户ID是否唯一
+     * 检查同一门店下员工是否重复关联
      *
      * @param dealershipStaffId 门店员工ID
-     * @param userId            用户ID
+     * @param dealershipCode    门店代码
+     * @param employeeId        员工ID
      * @return 结果
      */
-    public Boolean checkUserIdUnique(Long dealershipStaffId, Long userId) {
-        if (ObjUtil.isNull(dealershipStaffId)) {
-            dealershipStaffId = -1L;
+    public Boolean checkEmployeeUnique(Long dealershipStaffId, String dealershipCode, Long employeeId) {
+        if (StrUtil.isBlank(dealershipCode) || employeeId == null) {
+            return true;
         }
-        DealershipStaffPo dealershipStaffPo = getDealershipStaffByUserId(userId);
-        return !ObjUtil.isNotNull(dealershipStaffPo) || dealershipStaffPo.getId().longValue() == dealershipStaffId.longValue();
+        List<DealershipStaffPo> existing = dealershipStaffMapper.selectPoByExample(DealershipStaffPo.builder()
+                .dealershipCode(dealershipCode)
+                .employeeId(employeeId)
+                .build());
+        if (existing == null || existing.isEmpty()) {
+            return true;
+        }
+        if (dealershipStaffId == null) {
+            return false;
+        }
+        return existing.stream().anyMatch(po -> dealershipStaffId.equals(po.getId()));
     }
 
     /**
@@ -118,13 +129,13 @@ public class DealershipStaffAppService {
     }
 
     /**
-     * 根据用户ID获取门店员工
+     * 根据员工ID获取门店员工关联（一个员工可隶属多个门店）
      *
-     * @param userId 用户ID
-     * @return 门店员工
+     * @param employeeId 员工ID
+     * @return 门店员工关联列表
      */
-    public DealershipStaffPo getDealershipStaffByUserId(Long userId) {
-        return dealershipStaffMapper.selectPoByUserId(userId);
+    public List<DealershipStaffPo> getDealershipStaffByEmployeeId(Long employeeId) {
+        return dealershipStaffMapper.selectPoByEmployeeId(employeeId);
     }
 
     /**
@@ -155,6 +166,19 @@ public class DealershipStaffAppService {
      */
     public int deleteDealershipStaffByIds(Long[] ids) {
         return dealershipStaffMapper.batchPhysicalDeletePo(ids);
+    }
+
+    /**
+     * 按员工ID批量删除门店员工关联（员工删除时联动清理）
+     *
+     * @param employeeIds 员工ID集合
+     * @return 结果
+     */
+    public int deleteDealershipStaffByEmployeeIds(List<Long> employeeIds) {
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return 0;
+        }
+        return dealershipStaffMapper.deletePoByEmployeeIds(employeeIds);
     }
 
 }

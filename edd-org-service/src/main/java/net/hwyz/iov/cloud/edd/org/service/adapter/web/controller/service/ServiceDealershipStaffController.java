@@ -40,7 +40,7 @@ public class ServiceDealershipStaffController extends BaseController {
         log.info("分页查询门店员工信息");
         startPage();
         List<DealershipStaffPo> dealershipStaffPoList = dealershipStaffAppService.search(null, null,
-                dealershipCode, null, null, null, null, null);
+                dealershipCode, null, null, null, null, null, null);
         return getPageResult(PageUtil.convert(dealershipStaffPoList, DealershipStaffExServiceAssembler.INSTANCE::fromPo));
     }
 

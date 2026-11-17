@@ -40,32 +40,32 @@ public class DealershipStaffPo extends BasePo {
     private String dealershipCode;
 
     /**
-     * 门店名称
+     * 员工ID（tb_employee.id）
      */
-    @TableField("dealership_name")
+    @TableField("employee_id")
+    private Long employeeId;
+
+    /**
+     * 门店名称（关联 tb_dealership，仅用于展示）
+     */
+    @TableField(exist = false)
     private String dealershipName;
 
     /**
-     * 员工用户ID
+     * 员工工号（关联 tb_employee，仅用于展示）
      */
-    @TableField("user_id")
-    private Long userId;
+    @TableField(exist = false)
+    private String employeeCode;
 
     /**
-     * 员工名称
+     * 员工姓名（关联 tb_employee，仅用于展示）
      */
-    @TableField("user_name")
-    private String userName;
+    @TableField(exist = false)
+    private String employeeName;
 
     /**
-     * 员工昵称
+     * 员工手机号（关联 tb_employee，仅用于展示）
      */
-    @TableField("nick_name")
-    private String nickName;
-
-    /**
-     * 员工手机
-     */
-    @TableField("phonenumber")
-    private String phonenumber;
+    @TableField(exist = false)
+    private String phone;
 }

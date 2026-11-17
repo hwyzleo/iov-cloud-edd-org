@@ -54,8 +54,8 @@ public class MptDealershipStaffController extends BaseController {
         log.info("管理后台用户[{}]查询门店员工", SecurityUtils.getUsername());
         List<DealershipStaffPo> dealershipStaffPoList = dealershipStaffAppService.search(dealershipStaff.getRegionCode(),
                 dealershipStaff.getAreaCode(), dealershipStaff.getDealershipCode(), dealershipStaff.getDealershipName(),
-                dealershipStaff.getUserName(), dealershipStaff.getPhonenumber(), getBeginTime(dealershipStaff),
-                getEndTime(dealershipStaff));
+                dealershipStaff.getEmployeeCode(), dealershipStaff.getEmployeeName(), dealershipStaff.getPhone(),
+                getBeginTime(dealershipStaff), getEndTime(dealershipStaff));
         return ApiResponse.ok(getPageResult(PageUtil.convert(dealershipStaffPoList, DealershipStaffMptAssembler.INSTANCE::fromPo)));
     }
 
@@ -96,9 +96,10 @@ public class MptDealershipStaffController extends BaseController {
     @RequiresPermissions("org:dealership:staff:add")
     @PostMapping
     public ApiResponse<Integer> add(@Validated @RequestBody DealershipStaffMpt dealershipStaff) {
-        log.info("管理后台用户[{}]新增门店员工[{}]", SecurityUtils.getUsername(), dealershipStaff.getUserName());
-        if (!dealershipStaffAppService.checkUserIdUnique(dealershipStaff.getId(), dealershipStaff.getUserId())) {
-            return ApiResponse.fail("新增门店员工'" + dealershipStaff.getUserName() + "'失败，用户ID已存在");
+        log.info("管理后台用户[{}]新增门店员工[{}]", SecurityUtils.getUsername(), dealershipStaff.getEmployeeName());
+        if (!dealershipStaffAppService.checkEmployeeUnique(dealershipStaff.getId(), dealershipStaff.getDealershipCode(),
+                dealershipStaff.getEmployeeId())) {
+            return ApiResponse.fail("新增门店员工'" + dealershipStaff.getEmployeeName() + "'失败，该门店已存在此员工");
         }
         DealershipStaffPo dealershipStaffPo = DealershipStaffMptAssembler.INSTANCE.toPo(dealershipStaff);
         dealershipStaffPo.setCreateBy(SecurityUtils.getUserId().toString());
@@ -115,9 +116,10 @@ public class MptDealershipStaffController extends BaseController {
     @RequiresPermissions("org:dealership:staff:edit")
     @PutMapping
     public ApiResponse<Integer> edit(@Validated @RequestBody DealershipStaffMpt dealershipStaff) {
-        log.info("管理后台用户[{}]修改保存门店员工[{}]", SecurityUtils.getUsername(), dealershipStaff.getUserName());
-        if (!dealershipStaffAppService.checkUserIdUnique(dealershipStaff.getId(), dealershipStaff.getUserId())) {
-            return ApiResponse.fail("修改保存门店员工'" + dealershipStaff.getUserName() + "'失败，用户ID已存在");
+        log.info("管理后台用户[{}]修改保存门店员工[{}]", SecurityUtils.getUsername(), dealershipStaff.getEmployeeName());
+        if (!dealershipStaffAppService.checkEmployeeUnique(dealershipStaff.getId(), dealershipStaff.getDealershipCode(),
+                dealershipStaff.getEmployeeId())) {
+            return ApiResponse.fail("修改保存门店员工'" + dealershipStaff.getEmployeeName() + "'失败，该门店已存在此员工");
         }
         DealershipStaffPo dealershipStaffPo = DealershipStaffMptAssembler.INSTANCE.toPo(dealershipStaff);
         dealershipStaffPo.setModifyBy(SecurityUtils.getUserId().toString());
@@ -171,16 +173,16 @@ public class MptDealershipStaffController extends BaseController {
     }
 
     /**
-     * 查询员工
+     * 查询候选员工（来源为 ORG 员工主数据）
      *
      * @param key 关键词
      * @return 员工列表
      */
     @RequiresPermissions("org:dealership:staff:list")
-    @GetMapping(value = "/searchUser")
-    public ApiResponse<List<TreeSelect>> searchUser(@RequestParam(required = false) String key) {
-        log.info("管理后台用户[{}]查询员工[{}]", SecurityUtils.getUsername(), key);
-        return ApiResponse.ok(dealershipStaffAppService.searchUser(key));
+    @GetMapping(value = "/searchEmployee")
+    public ApiResponse<List<TreeSelect>> searchEmployee(@RequestParam(required = false) String key) {
+        log.info("管理后台用户[{}]查询候选员工[{}]", SecurityUtils.getUsername(), key);
+        return ApiResponse.ok(dealershipStaffAppService.searchEmployee(key));
     }
 
     /**

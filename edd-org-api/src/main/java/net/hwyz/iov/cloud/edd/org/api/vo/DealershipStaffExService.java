@@ -41,24 +41,24 @@ public class DealershipStaffExService {
     private String dealershipName;
 
     /**
-     * 员工用户ID
+     * 员工ID（tb_employee.id）
      */
-    private Long userId;
+    private Long employeeId;
 
     /**
-     * 用户账号
+     * 员工工号
      */
-    private String userName;
+    private String employeeCode;
 
     /**
-     * 用户昵称
+     * 员工姓名
      */
-    private String nickName;
+    private String employeeName;
 
     /**
-     * 手机号码
+     * 员工手机号
      */
-    private String phonenumber;
+    private String phone;
 
     /**
      * 创建时间

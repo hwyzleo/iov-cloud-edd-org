@@ -32,6 +32,7 @@ public class EmployeeAppService {
     private final EmployeeAssembler employeeAssembler;
     private final DepartmentMapper departmentMapper;
     private final PositionMapper positionMapper;
+    private final DealershipStaffAppService dealershipStaffAppService;
 
     @Transactional
     public EmployeeDto createEmployee(CreateEmployeeCmd cmd) {
@@ -146,6 +147,8 @@ public class EmployeeAppService {
     @Transactional
     public void deleteEmployees(Long[] ids) {
         log.info("删除员工: {}", ids);
+        // EDD-ORG-DSN-CR-003 §8.5：员工删除时同事务清理门店员工关联，避免孤儿关联
+        dealershipStaffAppService.deleteDealershipStaffByEmployeeIds(java.util.Arrays.asList(ids));
         for (Long id : ids) {
             employeeRepository.deleteDepartments(id);
             employeeRepository.deletePositions(id);
