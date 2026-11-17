@@ -36,11 +36,13 @@ public class DealershipStaffMpt extends BaseRequest {
     /**
      * 门店代码
      */
+    @Excel(name = "门店代码", sort = 1)
     private String dealershipCode;
 
     /**
      * 门店名称
      */
+    @Excel(name = "门店名称", sort = 2)
     private String dealershipName;
 
     /**
@@ -51,21 +53,31 @@ public class DealershipStaffMpt extends BaseRequest {
     /**
      * 员工工号
      */
+    @Excel(name = "工号", sort = 3)
     private String employeeCode;
 
     /**
      * 员工姓名
      */
+    @Excel(name = "姓名", sort = 4)
     private String employeeName;
 
     /**
      * 员工手机号
      */
+    @Excel(name = "手机号码", sort = 5)
     private String phone;
+
+    /**
+     * 备注
+     */
+    @Excel(name = "备注", sort = 6)
+    private String description;
 
     /**
      * 创建时间
      */
+    @Excel(name = "创建时间", sort = 7, dateFormat = "yyyy-MM-dd HH:mm:ss", width = 20)
     private Date createTime;
 
 }

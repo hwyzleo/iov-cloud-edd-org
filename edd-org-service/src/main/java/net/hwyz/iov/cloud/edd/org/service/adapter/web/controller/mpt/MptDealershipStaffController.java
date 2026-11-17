@@ -16,6 +16,7 @@ import net.hwyz.iov.cloud.framework.audit.annotation.Log;
 import net.hwyz.iov.cloud.framework.audit.enums.BusinessType;
 import net.hwyz.iov.cloud.framework.common.bean.ApiResponse;
 import net.hwyz.iov.cloud.framework.common.bean.PageResult;
+import net.hwyz.iov.cloud.framework.common.util.ExcelUtil;
 import net.hwyz.iov.cloud.framework.security.annotation.RequiresPermissions;
 import net.hwyz.iov.cloud.framework.security.util.SecurityUtils;
 import net.hwyz.iov.cloud.framework.web.controller.BaseController;
@@ -70,6 +71,14 @@ public class MptDealershipStaffController extends BaseController {
     @PostMapping("/export")
     public void export(HttpServletResponse response, DealershipStaffMpt dealershipStaff) {
         log.info("管理后台用户[{}]导出门店员工", SecurityUtils.getUsername());
+        // 导出与列表同口径：除分页外使用相同筛选条件
+        List<DealershipStaffPo> dealershipStaffPoList = dealershipStaffAppService.search(dealershipStaff.getRegionCode(),
+                dealershipStaff.getAreaCode(), dealershipStaff.getDealershipCode(), dealershipStaff.getDealershipName(),
+                dealershipStaff.getEmployeeCode(), dealershipStaff.getEmployeeName(), dealershipStaff.getPhone(),
+                getBeginTime(dealershipStaff), getEndTime(dealershipStaff));
+        List<DealershipStaffMpt> dealershipStaffMptList = PageUtil.convert(dealershipStaffPoList,
+                DealershipStaffMptAssembler.INSTANCE::fromPo);
+        new ExcelUtil<>(DealershipStaffMpt.class).exportExcel(response, dealershipStaffMptList, "门店员工");
     }
 
     /**

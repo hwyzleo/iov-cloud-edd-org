@@ -78,7 +78,7 @@
         <if test="employeeId != null">
             t.employee_id = #{employeeId},
         </if>
-        <if test="description != null and description != ''">
+        <if test="description != null">
             t.description = #{description},
         </if>
         <if test="modifyBy != null">
