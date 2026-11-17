@@ -38,8 +38,14 @@
         t.description, t.create_time, t.create_by, t.modify_time, t.modify_by, t.row_version, t.row_valid
     </sql>
 
-    <!-- 员工与门店关联 -->
+    <!-- 员工与门店关联（展示/列表口径：仅启用员工，停用或已删除员工不再对外可见） -->
     <sql id="dealerAndEmployeeJoin">
+        INNER JOIN tb_employee e ON e.id = t.employee_id AND e.row_valid = 1 AND e.enable = 1
+        LEFT JOIN tb_dealership d ON t.dealership_code = d.code
+    </sql>
+
+    <!-- 员工与门店关联（维接口径：不过滤员工启用状态，用于详情与重复性校验，避免停用员工导致误判） -->
+    <sql id="dealerAndEmployeeJoinAny">
         INNER JOIN tb_employee e ON e.id = t.employee_id AND e.row_valid = 1
         LEFT JOIN tb_dealership d ON t.dealership_code = d.code
     </sql>
@@ -128,7 +134,7 @@
         SELECT
         <include refid="baseColumnList"/>
         FROM tb_dealership_staff t
-        <include refid="dealerAndEmployeeJoin"/>
+        <include refid="dealerAndEmployeeJoinAny"/>
         WHERE t.id = #{value}
         AND t.row_valid = 1
     </select>
@@ -140,7 +146,7 @@
         SELECT
         <include refid="baseColumnList"/>
         FROM tb_dealership_staff t
-        <include refid="dealerAndEmployeeJoin"/>
+        <include refid="dealerAndEmployeeJoinAny"/>
         WHERE t.row_valid = 1
         <if test="id != null">
             AND t.id = #{id}
@@ -209,7 +215,7 @@
         SELECT
         <include refid="baseColumnList"/>
         FROM tb_dealership_staff t
-        <include refid="dealerAndEmployeeJoin"/>
+        <include refid="dealerAndEmployeeJoinAny"/>
         WHERE t.row_valid = 1
         AND t.employee_id = #{value}
         ORDER BY t.id DESC
@@ -220,6 +226,7 @@
         SELECT t.id, t.code, t.name, t.phone, t.email, t.enable
         FROM tb_employee t
         WHERE t.row_valid = 1
+        AND t.enable = 1
         <if test="_parameter != null and _parameter != ''">
             AND (t.code LIKE #{_parameter} OR t.name LIKE #{_parameter} OR t.phone LIKE #{_parameter})
         </if>

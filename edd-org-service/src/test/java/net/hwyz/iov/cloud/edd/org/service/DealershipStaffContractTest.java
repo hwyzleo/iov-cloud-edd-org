@@ -89,6 +89,19 @@ class DealershipStaffContractTest {
     }
 
     @Test
+    @DisplayName("列表与候选人检索排除停用员工，内部查询不过滤启用状态")
+    void mapperExcludesDisabledEmployeesForDisplayQueries() throws IOException {
+        String xml = readClasspath("/mappers/DealershipStaffMapper.xml");
+
+        // 展示口径：门店员工列表与交付人员列表都不得返回停用员工
+        assertThat(xml).contains("id=\"dealerAndEmployeeJoin\"");
+        assertThat(xml).contains("e.id = t.employee_id AND e.row_valid = 1 AND e.enable = 1");
+        // 维接口径：详情与重复性校验不能因员工停用而误判
+        assertThat(xml).contains("id=\"dealerAndEmployeeJoinAny\"");
+        assertThat(xml).contains("AND t.enable = 1");
+    }
+
+    @Test
     @DisplayName("Mapper 接口新增员工维度方法，移除 MPT 用户查询方法")
     void mapperInterfaceExposesEmployeeOperations() {
         List<String> methodNames = Arrays.stream(DealershipStaffMapper.class.getDeclaredMethods())
