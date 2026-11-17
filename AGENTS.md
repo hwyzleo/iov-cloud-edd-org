@@ -15,6 +15,15 @@
 - 参考 Notion Page ID: 4080ec7a4b9280969913d164fb9c9008
 - 变更记录 Notion Page ID: 26948c9495544425841798b26b4020b7
 
+# 当前项目系统架构文档
+- 参考 Notion Page ID: 4120ec7a4b928062ad69e56e1b7bc2e1
+
+# 当前项目功能架构文档
+- 参考 Notion Page ID: 4170ec7a4b9280b9b3f1cfc664338ea4
+
+# 当前项目数据库文档
+- 参考 Notion Page ID: 4170ec7a4b92803caad2d5c1c8494957
+
 # graphify
 
 This project has a graphify knowledge graph at graphify-out/.
